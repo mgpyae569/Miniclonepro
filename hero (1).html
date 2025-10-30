@@ -1,0 +1,3629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiniMyId - Black Glass UI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/3.3.2/jsencrypt.min.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5A52D5;
+            --accent: #FF6B8B;
+            --success: #4CD964;
+            --warning: #FFCC00;
+            --danger: #FF3B30;
+            --dark-1: #121212;
+            --dark-2: #1E1E1E;
+            --dark-3: #2D2D2D;
+            --dark-4: #3A3A3A;
+            --light-1: #FFFFFF;
+            --light-2: #F5F5F7;
+            --light-3: #E5E5EA;
+            --light-4: #D1D1D6;
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            min-height: 100vh;
+            color: var(--light-1);
+            background: linear-gradient(135deg, var(--dark-1) 0%, var(--dark-2) 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0;
+            overflow-x: hidden;
+            transition: background-image 0.5s ease;
+        }
+        
+        body.custom-bg {
+            background: var(--dark-1);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        /* Loading Screen Styles */
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: var(--light-1);
+            font-size: 1.1rem;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            background: linear-gradient(135deg, var(--dark-1) 0%, var(--dark-2) 100%);
+        }
+        
+        #loadingScreen.custom-bg {
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        
+        #loadingScreen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 18, 0.7);
+            z-index: -1;
+        }
+        
+        #loadingScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .loading-logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            border-radius: 25px;
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            color: var(--primary);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .loading-logo::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+        
+        .loading-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .loading-subtext {
+            font-size: 1rem;
+            color: var(--light-4);
+            margin-bottom: 30px;
+            text-align: center;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+        
+        .loading-progress {
+            width: 200px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .loading-progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .loading-percentage {
+            font-size: 0.9rem;
+            color: var(--light-3);
+        }
+        
+        /* App bar - Black Glass */
+        .appbar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            z-index: 1000;
+        }
+        
+        .appbar .brand {
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            color: var(--light-1); 
+            font-weight: 700; 
+            font-size: 1.3rem;
+        }
+        
+        .appbar .actions { 
+            display: flex; 
+            gap: 12px; 
+        }
+        
+        .icon-btn { 
+            appearance:none; 
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light-1);
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            cursor:pointer; 
+            transition: all 0.3s ease;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .icon-btn:hover { 
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .icon-btn.muted {
+            color: var(--danger);
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 90px;
+            padding: 20px;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 30px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+        
+        .glass-panel h1 {
+            color: var(--light-1);
+            margin-bottom: 12px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            color: var(--light-4);
+            margin-bottom: 28px;
+            font-size: 1rem;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        /* Input Group Styles */
+        .input-group {
+            margin-bottom: 24px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--light-2);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .glass-input {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--light-1);
+            font-size: 16px;
+            transition: all 0.3s;
+            outline: none;
+        }
+        
+        .glass-input:focus { 
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.2);
+        }
+        
+        .input-icon { 
+            position: absolute; 
+            left: 16px; 
+            color: var(--primary); 
+            font-size: 18px; 
+        }
+        
+        .toggle-visibility {
+            position: absolute;
+            right: 16px;
+            background: none;
+            border: none;
+            color: var(--light-4);
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        /* Glass Button */
+        .glass-btn { 
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light-1);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-btn:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+        
+        .glass-btn:active {
+            transform: translateY(0);
+        }
+        
+        .glass-btn:disabled { 
+            background: var(--dark-4);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: var(--light-4);
+        }
+
+        /* Glass Tabs */
+        .glass-tabs { 
+            display: flex; 
+            gap: 8px; 
+            margin-bottom: 28px; 
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px; 
+            border-radius: 14px;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .glass-tab { 
+            padding: 12px 20px; 
+            border: none; 
+            background: transparent;
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            transition: all 0.3s; 
+            color: var(--light-4);
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .glass-tab.active { 
+            background: rgba(108, 99, 255, 0.2);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        /* Message Styles */
+        .glass-message {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            display: none;
+            border-left: 4px solid;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-success { 
+            border-left-color: var(--success);
+            color: var(--success);
+        }
+        
+        .glass-error { 
+            border-left-color: var(--danger);
+            color: var(--danger);
+        }
+        
+        .glass-info { 
+            margin-top: 24px; 
+            font-size: 14px; 
+            color: var(--light-3); 
+            text-align: left; 
+            background: rgba(0, 0, 0, 0.3); 
+            padding: 20px; 
+            border-radius: 12px; 
+            border-left: 4px solid var(--primary);
+            line-height: 1.6;
+        }
+        
+        /* Player Info - Glass Style */
+        .player-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 24px 0;
+            text-align: left;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .player-msisdn {
+            font-weight: 700;
+            color: var(--light-1);
+            font-size: 1.2rem;
+        }
+        
+        .glass-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s;
+        }
+        
+        .stat-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .stat-name {
+            font-size: 0.8rem;
+            color: var(--light-4);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .stat-value { 
+            font-size: 1.4rem; 
+            font-weight: 700; 
+        }
+        
+        #goldenHeart { color: var(--accent); }
+        #totalTurn  { color: var(--primary); }
+        #remainTurn { color: var(--success); }
+        #diamond    { color: var(--warning); }
+        
+        /* Game Log - Glass Style */
+        .glass-log {
+           background: rgba(0, 0, 0, 0.3);
+           border-radius: 16px;
+           padding: 20px;
+           margin: 24px 0;
+           text-align: left;
+           border: 1px solid var(--glass-border);
+           max-height: 300px;
+           overflow-y: auto;
+        }
+        
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .log-title { 
+            font-weight: 700; 
+            color: var(--light-1);
+            font-size: 1.1rem;
+        }
+        
+        .log-clear { 
+            background: rgba(255, 255, 255, 0.1); 
+            border: 1px solid var(--glass-border); 
+            color: var(--light-2); 
+            cursor: pointer; 
+            font-size: 0.8rem; 
+            border-radius: 8px; 
+            padding: 6px 12px; 
+            transition: all 0.3s;
+        }
+        
+        .log-clear:hover { 
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .log-content { 
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace; 
+            font-size: 0.85rem; 
+            line-height: 1.5;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+        
+        .log-item { 
+            margin-bottom: 8px; 
+            padding: 8px 0; 
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+        }
+        
+        .log-success { color: var(--success); }
+        .log-error   { color: var(--danger); }
+        .log-info    { color: var(--primary); }
+        
+        /* Stats Display Styles */
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-data .stat-icon { color: #6a8bff; }
+        .stat-point .stat-icon { color: #ffc107; }
+        .stat-voice .stat-icon { color: #96c93d; }
+        
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        
+        .stat-data .stat-value { color: #6a8bff; }
+        .stat-point .stat-value { color: #ffc107; }
+        .stat-voice .stat-value { color: #96c93d; }
+        
+        .stat-unit {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-left: 2px;
+        }
+        
+        /* Loading Overlay - Glass */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(18, 18, 18, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: var(--light-1);
+            font-size: 1.1rem;
+            display: none;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+        }
+        
+        .glass-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 20px;
+        }
+        
+        /* Bottom Navigation Bar */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+        
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--light-4);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+        
+        .nav-btn i {
+            font-size: 1.2rem;
+        }
+        
+        .nav-btn.active {
+            color: var(--primary);
+            background: rgba(108, 99, 255, 0.1);
+        }
+        
+        .nav-btn:hover {
+            color: var(--light-1);
+            transform: translateY(-2px);
+        }
+        
+        /* Stop Auto Button */
+        .stop-auto-btn {
+            background: linear-gradient(135deg, var(--danger), #e53935);
+            color: var(--light-1);
+            border: none;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .stop-auto-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
+        }
+        
+        /* Animations */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Screen Transitions */
+        .screen {
+            animation: fadeIn 0.3s ease;
+            display: none;
+            margin-bottom: 80px;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        /* Account Cards */
+        .account-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            text-align: left;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .account-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        
+        .msisdn {
+            font-weight: 700;
+            color: var(--light-1);
+            font-size: 1.2rem;
+        }
+        
+        .balance-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .balance-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+        }
+        
+        .balance-name {
+            font-size: 0.8rem;
+            color: var(--light-4);
+            margin-bottom: 8px;
+        }
+        
+        .balance-amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+        
+        .balance-unit {
+            font-size: 0.8rem;
+            color: var(--light-4);
+        }
+        
+        /* Button Group */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light-1);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* Status Display Styles */
+        .status-display {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-left: 4px solid rgba(0, 176, 155, 0.7);
+            backdrop-filter: blur(5px);
+        }
+        
+        .status-label {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 5px;
+        }
+        
+        .status-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .status-ready {
+            color: #96c93d;
+        }
+        
+        .status-loading {
+            color: #ffc107;
+        }
+        
+        .status-error {
+            color: #ff6b6b;
+        }
+        
+        /* Skeleton Loading */
+        .skeleton {
+            opacity: 0.7;
+            animation: skeleton-loading 1s linear infinite alternate;
+        }
+        
+        .skeleton-line {
+            height: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .skeleton-lg {
+            height: 1.5rem;
+        }
+        
+        @keyframes skeleton-loading {
+            0% {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+            100% {
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+        }
+        
+        /* Hide Classes */
+        .phone-input-hidden {
+            display: none !important;
+        }
+        
+        .heart-to-dia-hidden {
+            display: none !important;
+        }
+        
+        .system-ready-hidden {
+            display: none !important;
+        }
+        
+        .initialize-btn-hidden {
+            display: none !important;
+        }
+        
+        /* Prize History Button Hidden */
+        #fetchHistoryBtn {
+            display: none !important;
+        }
+        
+        /* Prize Image Modal */
+        .prize-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .prize-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .prize-content {
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            box-shadow: var(--glass-shadow);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        
+        .prize-modal.active .prize-content {
+            transform: scale(1);
+        }
+        
+        .prize-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 15px;
+            margin: 0 auto 20px;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+        
+        .prize-title {
+            color: var(--light-1);
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .prize-message {
+            color: var(--light-3);
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+        
+        .prize-close {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light-1);
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .prize-close:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+        
+        /* Custom Background Modal */
+        .custom-bg-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-bg-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .custom-bg-content {
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--glass-shadow);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        
+        .custom-bg-modal.active .custom-bg-content {
+            transform: scale(1);
+        }
+        
+        .custom-bg-title {
+            color: var(--light-1);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .custom-bg-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .custom-bg-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .custom-bg-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .custom-bg-option i {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .custom-bg-option-text {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .custom-bg-option-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--light-1);
+        }
+        
+        .custom-bg-option-desc {
+            font-size: 0.85rem;
+            color: var(--light-4);
+        }
+        
+        .custom-bg-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .custom-bg-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .custom-bg-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light-1);
+        }
+        
+        .custom-bg-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light-1);
+        }
+        
+        .custom-bg-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .custom-bg-btn.primary:hover {
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+        
+        .custom-bg-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Custom Music Modal */
+        .custom-music-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-music-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .custom-music-content {
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: var(--glass-shadow);
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        
+        .custom-music-modal.active .custom-music-content {
+            transform: scale(1);
+        }
+        
+        .custom-music-title {
+            color: var(--light-1);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        .custom-music-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .custom-music-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .custom-music-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .custom-music-option i {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        
+        .custom-music-option-text {
+            flex: 1;
+            text-align: left;
+        }
+        
+        .custom-music-option-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--light-1);
+        }
+        
+        .custom-music-option-desc {
+            font-size: 0.85rem;
+            color: var(--light-4);
+        }
+        
+        .custom-music-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .custom-music-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .custom-music-btn.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--light-1);
+        }
+        
+        .custom-music-btn.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--light-1);
+        }
+        
+        .custom-music-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .custom-music-btn.primary:hover {
+            box-shadow: 0 6px 20px rgba(108, 99, 255, 0.4);
+        }
+        
+        .custom-music-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        /* History Screen Styles */
+        .history-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 6px 0 12px 0;
+            padding: 0;
+            border: none;
+        }
+        
+        .back-compact {
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 14px;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,.08);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .ex-title {
+            margin-left: auto;
+            background: #ff9800;
+            color: #fff;
+            border-radius: 20px;
+            padding: 7px 8px;
+            font-weight: 700;
+        }
+        
+        .segmented {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .seg-btn {
+            flex: 1;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 12px 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        
+        .seg-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #fff;
+        }
+        
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .history-card {
+            background: #fff;
+            border: 1px solid #DDDDDD;
+            border-radius: 16px;
+            padding: 16px;
+        }
+        
+        .history-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        
+        .history-title {
+            font-weight: 700;
+            color: #000;
+        }
+        
+        .history-amount.earn {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .history-amount.burn {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .history-date {
+            margin-top: 8px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .msisdn {
+            font-weight: 700;
+            color: var(--light-1);
+            font-size: 1.2rem;
+        }
+
+        /* Game Controls Layout */
+        .game-controls-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .side-by-side-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .side-by-side-buttons .secondary-btn {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .main-container { 
+                padding: 16px; 
+                margin-top: 80px;
+            }
+            .glass-panel { 
+                padding: 20px; 
+            }
+            .player-stats { 
+                grid-template-columns: 1fr 1fr; 
+                gap: 12px;
+            }
+            .balance-grid { 
+                grid-template-columns: 1fr 1fr; 
+            }
+            .button-group { 
+                flex-direction: column; 
+            }
+            .bottom-nav { 
+                height: 60px; 
+            }
+            .nav-btn { 
+                padding: 6px 12px; 
+                font-size: 0.7rem; 
+            }
+            .nav-btn i { 
+                font-size: 1rem; 
+            }
+            .prize-content { 
+                padding: 20px; 
+            }
+            .prize-image { 
+                width: 120px; 
+                height: 120px; 
+            }
+            .custom-bg-content { 
+                padding: 20px; 
+            }
+            .custom-music-content { 
+                padding: 20px; 
+            }
+            .history-top {
+                flex-wrap: wrap;
+            }
+            
+            .back-compact {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            
+            .ex-title {
+                font-size: 12px;
+                padding: 5px 6px;
+            }
+            
+            .seg-btn {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            /* Game controls responsive */
+            .side-by-side-buttons {
+                flex-direction: row;
+            }
+
+            /* Player info responsive */
+            .player-info {
+                padding: 16px;
+                margin: 16px 0;
+            }
+
+            .player-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            .player-msisdn {
+                font-size: 1.1rem;
+            }
+
+            .stat-item {
+                padding: 12px;
+            }
+
+            .stat-name {
+                font-size: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+
+            /* App bar responsive */
+            .appbar {
+                padding: 0 16px;
+                height: 60px;
+            }
+
+            .appbar .brand {
+                font-size: 1.1rem;
+            }
+
+            .icon-btn {
+                width: 38px;
+                height: 38px;
+            }
+
+            /* Stop Auto Button positioning */
+            #stopAutoContainer {
+                margin-top: 12px;
+            }
+        }
+
+        /* Desktop specific styles */
+        @media (min-width: 481px) {
+            .side-by-side-buttons {
+                flex-direction: row;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen">
+        <div class="loading-text">MiniMyId</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loadingProgressBar"></div>
+        </div>
+        <div class="loading-percentage" id="loadingPercentage">0%</div>
+    </div>
+
+    <!-- Black Glass App Bar -->
+    <header class="appbar" role="banner">
+        <div class="brand">
+            <div>MiniMyId</div>
+        </div>
+        <div class="actions">
+            <button class="icon-btn" id="customBgBtn" title="Custom Background">
+                <i class="fas fa-image"></i>
+            </button>
+            <button class="icon-btn" id="customMusicBtn" title="Custom Music">
+                <i class="fas fa-music"></i>
+            </button>
+            <button class="icon-btn" id="musicToggle" title="Toggle Music">
+                <i class="fas fa-volume-up"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Token Input Screen -->
+        <div id="tokenScreen" class="screen active">
+            <div class="glass-panel">
+                <h1>MiniMyId</h1>
+                <p class="subtitle">သင့်အကောင့်အား ၀င်ပါ</p>
+
+                <!-- Login Tabs -->
+                <div class="glass-tabs">
+                    <button class="glass-tab active" data-tab="token-tab">Token</button>
+                    <button class="glass-tab" data-tab="otp-tab">Phone / OTP</button>
+                </div>
+
+                <!-- Token Login Tab -->
+                <div id="token-tab" class="tab-content active">
+                    <div class="input-group">
+                        <label for="token">Authentication Token</label>
+                        <div class="input-container">
+                            <i class="fas fa-key input-icon"></i>
+                            <input type="password" id="token" class="glass-input" placeholder="Enter your token">
+                            <button type="button" class="toggle-visibility" id="toggleVisibility">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button id="startBtn" class="glass-btn">
+                        <div class="spinner"></div>
+                        <span class="btn-text">Get Account Details</span>
+                    </button>
+                </div>
+
+                <!-- OTP Login Tab -->
+                <div id="otp-tab" class="tab-content">
+                    <div class="input-group">
+                        <label for="phoneNumberLogin">Phone Number</label>
+                        <div class="input-container">
+                            <i class="fas fa-phone input-icon"></i>
+                            <input type="tel" id="phoneNumberLogin" class="glass-input" placeholder="09XXXXXXXX">
+                        </div>
+                    </div>
+                    
+                    <div id="otpSection" style="display: none;">
+                        <div class="input-group">
+                            <label for="otpCode">OTP Code</label>
+                            <div class="input-container">
+                                <i class="fas fa-sms input-icon"></i>
+                                <input type="text" id="otpCode" class="glass-input" placeholder="6-digit OTP" maxlength="6">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="sendOtpBtn" class="glass-btn">
+                        <div class="spinner"></div>
+                        <span class="btn-text" id="otpBtnText">Send OTP</span>
+                    </button>
+                    
+                    <button id="verifyOtpBtn" class="glass-btn" style="display: none; margin-top: 10px;">
+                        <div class="spinner"></div>
+                        <span class="btn-text">Verify OTP</span>
+                    </button>
+                </div>
+                
+                <div id="message" class="glass-message"></div>
+                
+                <div class="glass-info">
+                    <p><strong>Welcome to MiniMyId</strong></p>
+                    <p>MiniMyId Bot အား GHOST မှ ဖန်တီးထားပြီး အသုံးပြုရလွယ်ကူအောင်ပြုလုပ်ပေးထားပါသည်။</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Data Display Screen -->
+        <div id="dataScreen" class="screen">
+            <div class="glass-panel">
+               
+                
+                <div id="accountsContainer">
+                    <!-- Account cards will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Play Screen -->
+        <div id="playScreen" class="screen">
+            <div class="glass-panel">
+                
+                <!-- Phone Number Input - HIDDEN -->
+                <div class="input-group phone-input-hidden">
+                    <label for="phoneNumber">Phone Number</label>
+                    <div class="input-container">
+                        <i class="fas fa-phone input-icon"></i>
+                        <input type="text" id="phoneNumber" class="glass-input" placeholder="Enter phone number (e.g., 09688888888)">
+                    </div>
+                </div>
+                
+                <!-- Initialize System Button - Will be hidden after system is ready -->
+                <button id="fetchTokenBtn" class="glass-btn">
+                    <div class="spinner"></div>
+                    <span class="btn-text">Start System</span>
+                </button>
+                
+                <div id="playMessage" class="glass-message"></div>
+                
+                <!-- Status Display - Will be hidden when system is ready -->
+                <div id="statusDisplay" class="status-display">
+                    <div class="status-label">System Status:</div>
+                    <div class="status-value" id="systemStatus">Not initialized</div>
+                </div>
+                
+                <!-- Player Info Display -->
+                <div id="playerInfo" class="player-info" style="display: none;">
+                    <div class="player-header">
+                        <div class="player-msisdn" id="playerMsisdn">-</div>
+                    </div>
+                    <div class="player-stats">
+                        <div class="stat-item">
+                            <div class="stat-name">အသဲ</div>
+                            <div class="stat-value" id="goldenHeart">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-name">အသက်</div>
+                            <div class="stat-value" id="totalTurn">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-name">ကျန်ရှိသော ကစားခွင့်</div>
+                            <div class="stat-value" id="remainTurn">-</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-name">စိန်</div>
+                            <div class="stat-value" id="diamond">-</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats Display -->
+                <div id="statsDisplay" class="stats-display">
+                    <div class="stat-card stat-data">
+                        <div class="stat-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-label">Data</div>
+                        <div class="stat-value">0<span class="stat-unit">MB</span></div>
+                    </div>
+                    <div class="stat-card stat-point">
+                        <div class="stat-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="stat-label">Points</div>
+                        <div class="stat-value">0<span class="stat-unit">PTS</span></div>
+                    </div>
+                    <div class="stat-card stat-voice">
+                        <div class="stat-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="stat-label">Voice</div>
+                        <div class="stat-value">0<span class="stat-unit">MIN</span></div>
+                    </div>
+                </div>
+                
+                <!-- Game Controls - Modified Layout -->
+                <div class="game-controls-layout" id="gameControls" style="display: none;">
+                    <!-- အသဲ မှ စိန် နှင့် စိန် မှ ကစားခွင့် button နှစ်ခုကို ဘေးတိုက်ပေါ်အောင် ပြင်ဆင်ထားသည် -->
+                    <div class="side-by-side-buttons">
+                        <button id="heartToDia" class="secondary-btn">
+                            <i class="fas fa-heart"></i> အသဲ မှ စိန်
+                        </button>
+                        <button id="diaToTurn" class="secondary-btn">
+                            <i class="fas fa-gem"></i> စိန် မှ ကစားခွင့်
+                        </button>
+                    </div>
+
+                    <button id="buyHeartBtn" class="secondary-btn">
+                        <i class="fas fa-heart"></i> အသဲ60၀ယ်ရန် (900ကျပ်)
+                    </button>
+                    
+                    <!-- Auto Play Control -->
+                    <div class="button-group" id="autoPlayControls" style="display: none;">
+                        <button id="startAutoBtn" class="glass-btn">
+                            <i class="fas fa-robot"></i> Start Auto Play
+                        </button>
+                    </div>
+                    
+                    <!-- Stop Auto Button -->
+                    <div id="stopAutoContainer" style="display: none;">
+                        <button id="stopAutoBtn" class="stop-auto-btn">
+                            <i class="fas fa-stop"></i> Stop Auto Play
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Game Log -->
+                <div id="gameLog" class="glass-log" style="display: none;">
+                    <div class="log-header">
+                        <div class="log-title">Game Log</div>
+                        <button class="log-clear" id="clearLog">Clear</button>
+                    </div>
+                    <div class="log-content" id="logContent"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- History Screen -->
+        <div id="historyScreen" class="screen">
+            <div class="glass-panel">
+                <h1>History</h1>
+                <p class="subtitle">ရရှိသောပွိုင့်များ</p>
+               
+                <div class="segmented">
+                    <button class="seg-btn active" id="btnEarn">ရရှိသောပွိုင့်</button>
+                    <button class="seg-btn" id="btnBurn">သုံးစွဲသောပွိုင့်</button>
+                </div>
+                <div class="history-list" id="historyList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <button class="nav-btn" id="navData" data-screen="dataScreen">
+            <i class="fas fa-database"></i>
+            <span>Home</span>
+        </button>
+        <button class="nav-btn" id="navPlay" data-screen="playScreen">
+            <i class="fas fa-gamepad"></i>
+            <span>Play</span>
+        </button>
+        <button class="nav-btn" id="navHistory" data-screen="historyScreen">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+        </button>
+        <button class="nav-btn" id="navLogout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </nav>
+
+    <!-- Gateway.js will be dynamically loaded here -->
+    <div id="gatewayScriptContainer"></div>
+
+    <!-- Glass Loading Overlay -->
+    <div id="loadingOverlay">
+        <div class="glass-spinner"></div>
+        <div id="loaderText">Loading...</div>
+    </div>
+
+    <!-- Prize Modal -->
+    <div id="prizeModal" class="prize-modal">
+        <div class="prize-content">
+            <img id="prizeImage" class="prize-image" src="" alt="Prize">
+            <div id="prizeTitle" class="prize-title">Congratulations!</div>
+            <div id="prizeMessage" class="prize-message">You won a prize!</div>
+            <button id="prizeClose" class="prize-close">Close</button>
+        </div>
+    </div>
+
+    <!-- Custom Background Modal -->
+    <div class="custom-bg-modal">
+        <div class="custom-bg-content">
+            <h2 class="custom-bg-title">Custom Background</h2>
+            <div class="custom-bg-options">
+                <div class="custom-bg-option" data-type="upload">
+                    <i class="fas fa-upload"></i>
+                    <div class="custom-bg-option-text">
+                        <div class="custom-bg-option-title">Upload Image</div>
+                        <div class="custom-bg-option-desc">Select an image from your device</div>
+                    </div>
+                </div>
+                <div class="custom-bg-option" data-type="reset">
+                    <i class="fas fa-trash-alt"></i>
+                    <div class="custom-bg-option-text">
+                        <div class="custom-bg-option-title">Reset Background</div>
+                        <div class="custom-bg-option-desc">Restore default background</div>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-bg-buttons">
+                <button class="custom-bg-btn secondary" id="closeCustomBgModal">Cancel</button>
+                <button class="custom-bg-btn primary" id="saveCustomBg" style="display: none;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Music Modal -->
+    <div class="custom-music-modal">
+        <div class="custom-music-content">
+            <h2 class="custom-music-title">Custom Music</h2>
+            <div class="custom-music-options">
+                <div class="custom-music-option" data-type="default">
+                    <i class="fas fa-music"></i>
+                    <div class="custom-music-option-text">
+                        <div class="custom-music-option-title">Default Music</div>
+                        <div class="custom-music-option-desc">Use the original background music</div>
+                    </div>
+                </div>
+                <div class="custom-music-option" data-type="upload">
+                    <i class="fas fa-upload"></i>
+                    <div class="custom-music-option-text">
+                        <div class="custom-music-option-title">Upload Music</div>
+                        <div class="custom-music-option-desc">Select a music file from your device</div>
+                    </div>
+                </div>
+            </div>
+            <div class="custom-music-buttons">
+                <button class="custom-music-btn secondary" id="closeCustomMusicModal">Cancel</button>
+                <button class="custom-music-btn primary" id="saveCustomMusic" style="display: none;">Save</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Hidden file inputs -->
+    <input type="file" id="bgImageInput" accept="image/*" style="display: none;">
+    <input type="file" id="musicFileInput" accept="audio/*" style="display: none;">
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="https://github.com/plugin7/app/raw/refs/heads/main/%E1%80%85%E1%80%B6%E1%80%95%E1%80%9A%E1%80%BA%E1%80%9B%E1%80%B1%E1%80%AC%E1%80%84%E1%80%BA%E1%80%9A%E1%80%AF%E1%80%87%E1%80%94___JIXK_GABBY___AUNG_LAY__OFFICIAL_LYRICS_VIDEO_(256k).mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Telegram Web App Configuration
+        const tg = window.Telegram?.WebApp;
+        const PHP_BACKEND_URL = 'fetch_token.php'; 
+        
+        // Game state variables
+        let otpTimer = null;
+        let otpExpiryTime = null;
+        let otpRequestId = null;
+        let gameState = {
+            isAutoRunning: false,
+            sessionId: null,
+            msisdn: null,
+            t1: null,
+            t2: null,
+            bossId: null,
+            wave: 0,
+            score: 0,
+            playerInfo: null,
+            data: 0,      // Data in MB
+            point: 0,     // Points
+            voice: 0      // Voice minutes
+        };
+
+        // Background Music
+        const bgMusic = document.getElementById('bgMusic');
+        let musicStarted = false;
+        let isMuted = false;
+		
+		// HERO Mode Configuration
+        const HERO_CONFIG = {
+            baseScore: 100000,
+            scoreMultiplier: 3,
+            maxWaves: 14
+        };
+
+        // Custom Background Elements
+        const customBgBtn = document.getElementById('customBgBtn');
+        const customBgModal = document.querySelector('.custom-bg-modal');
+        const closeCustomBgModal = document.getElementById('closeCustomBgModal');
+        const bgImageInput = document.getElementById('bgImageInput');
+        const saveCustomBgBtn = document.getElementById('saveCustomBg');
+        const customBgOptions = document.querySelectorAll('.custom-bg-option');
+        let currentBgImage = null;
+
+        // Custom Music Elements
+        const customMusicBtn = document.getElementById('customMusicBtn');
+        const customMusicModal = document.querySelector('.custom-music-modal');
+        const closeCustomMusicModal = document.getElementById('closeCustomMusicModal');
+        const musicFileInput = document.getElementById('musicFileInput');
+        const saveCustomMusicBtn = document.getElementById('saveCustomMusic');
+        const customMusicOptions = document.querySelectorAll('.custom-music-option');
+        let currentMusicSource = null;
+
+        // Prize image URLs
+        const PRIZE_IMAGES = {
+            data: 'https://raw.githubusercontent.com/plugin7/ghost/refs/heads/main/mb.png',
+            point: 'https://raw.githubusercontent.com/plugin7/ghost/refs/heads/main/point.png'
+        };
+
+        // Check if we're recovering from a token fetch failure
+        const isRecoveryMode = sessionStorage.getItem('recoveryMode') === 'true';
+        const recoveryData = sessionStorage.getItem('recoveryData') ? JSON.parse(sessionStorage.getItem('recoveryData')) : null;
+
+        // Loading Screen Functionality with Background Image Support
+        document.addEventListener('DOMContentLoaded', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const loadingProgressBar = document.getElementById('loadingProgressBar');
+            const loadingPercentage = document.getElementById('loadingPercentage');
+            
+            // Check if there's a saved background image and apply it to loading screen
+            const savedBgImage = localStorage.getItem('customBgImage');
+            if (savedBgImage) {
+                loadingScreen.classList.add('custom-bg');
+                loadingScreen.style.backgroundImage = `url(${savedBgImage})`;
+                loadingScreen.style.backgroundBlendMode = 'overlay';
+            }
+            
+            // If in recovery mode, skip the loading screen
+            if (isRecoveryMode && recoveryData) {
+                loadingScreen.style.display = 'none';
+                initializeRecovery();
+            } else {
+                // Faster loading simulation
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        
+                        // Hide loading screen faster
+                        setTimeout(() => {
+                            loadingScreen.classList.add('hidden');
+                            
+                            // Remove loading screen from DOM after animation completes
+                            setTimeout(() => {
+                                loadingScreen.style.display = 'none';
+                            }, 300);
+                        }, 300);
+                    }
+                    
+                    loadingProgressBar.style.width = progress + '%';
+                    loadingPercentage.textContent = Math.round(progress) + '%';
+                }, 150);
+            }
+            
+            // Initialize the rest of your app
+            if (tg) {
+                tg.expand();
+                tg.enableClosingConfirmation();
+            }
+            
+            // Initialize music - Auto play without controls
+            initMusic();
+            
+            // Initialize custom background functionality
+            initCustomBackground();
+            
+            // Initialize custom music functionality
+            initCustomMusic();
+            
+            // Directly show main app without channel membership check
+            showMainApp();
+            
+            // Prize modal close button
+            document.getElementById('prizeClose').addEventListener('click', hidePrizeModal);
+            
+            // Navigation event listeners
+            document.getElementById('navData').addEventListener('click', function() {
+                switchScreen('dataScreen');
+            });
+            
+            document.getElementById('navPlay').addEventListener('click', function() {
+                const token = localStorage.getItem('mytelToken');
+                if (!token) {
+                    showMessage('Please login first', 'error');
+                    return;
+                }
+                
+                switchScreen('playScreen');
+                
+                // Auto-fill phone number from accounts if available
+                const accounts = JSON.parse(localStorage.getItem('mytelAccounts') || '[]');
+                if (accounts.length > 0) {
+                    document.getElementById('phoneNumber').value = accounts[0].msisdn;
+                }
+                
+                // AUTO CLICK Initialize System Button
+                setTimeout(() => {
+                    const fetchTokenBtn = document.getElementById('fetchTokenBtn');
+                    if (fetchTokenBtn && !fetchTokenBtn.disabled) {
+                        fetchTokenBtn.click();
+                    }
+                }, 300);
+            });
+            
+            // History navigation
+            document.getElementById('navHistory').addEventListener('click', function() {
+                const token = localStorage.getItem('mytelToken');
+                if (!token) {
+                    showMessage('Please login first', 'error');
+                    return;
+                }
+                
+                switchScreen('historyScreen');
+                
+                // Load history data
+                loadHistoryScreen();
+            });
+            
+            document.getElementById('navLogout').addEventListener('click', function() {
+                localStorage.removeItem('mytelToken');
+                localStorage.removeItem('mytelAccounts');
+                sessionStorage.removeItem('recoveryMode');
+                sessionStorage.removeItem('recoveryData');
+                switchScreen('tokenScreen');
+                document.getElementById('token').value = '';
+                document.getElementById('startBtn').disabled = true;
+                showMessage('You have been logged out', 'success');
+            });
+            
+            document.getElementById('toggleVisibility').addEventListener('click', function() {
+                const tokenInput = document.getElementById('token');
+                const icon = this.querySelector('i');
+                
+                if (tokenInput.type === 'password') {
+                    tokenInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                } else {
+                    tokenInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                }
+            });
+            
+            document.querySelectorAll('.glass-tab').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.querySelectorAll('.glass-tab').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+            
+            document.getElementById('startBtn').addEventListener('click', function() {
+                const token = document.getElementById('token').value.trim();
+                
+                if (!token) {
+                    showMessage('Please enter your token', 'error');
+                    return;
+                }
+                
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                fetchAccountData(token);
+            });
+            
+            document.getElementById('sendOtpBtn').addEventListener('click', function() {
+                const phoneNumber = document.getElementById('phoneNumberLogin').value.trim();
+                
+                if (!phoneNumber) {
+                    showMessage('Please enter your phone number', 'error');
+                    return;
+                }
+                
+                if (!isValidMyanmarPhone(phoneNumber)) {
+                    showMessage('Please enter a valid Myanmar phone number (09XXXXXXXX)', 'error');
+                    return;
+                }
+                
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                sendOtpRequest(phoneNumber);
+            });
+            
+            document.getElementById('verifyOtpBtn').addEventListener('click', function() {
+                const otpCode = document.getElementById('otpCode').value.trim();
+                
+                if (!otpCode || otpCode.length !== 6) {
+                    showMessage('Please enter a valid 6-digit OTP code', 'error');
+                    return;
+                }
+                
+                this.classList.add('loading');
+                this.disabled = true;
+                
+                verifyOtpRequest(otpCode);
+            });
+            
+            document.getElementById('startAutoBtn').addEventListener('click', startAutoGame);
+            document.getElementById('stopAutoBtn').addEventListener('click', stopAutoGame);
+            document.getElementById('diaToTurn').addEventListener('click', buyTurn);
+            document.getElementById('heartToDia').addEventListener('click', heartToDiamond);
+            document.getElementById('buyHeartBtn').addEventListener('click', buyHeartPackage);
+            
+            document.getElementById('clearLog').addEventListener('click', clearGameLog);
+            
+            // Initialize System Button
+            document.getElementById('fetchTokenBtn').addEventListener('click', function() {
+                const token = localStorage.getItem('mytelToken');
+                const phoneNumber = document.getElementById('phoneNumber').value.trim();
+                
+                if (!phoneNumber) {
+                    showPlayMessage('Please enter a phone number', 'error');
+                    return;
+                }
+                
+                if (!token) {
+                    showPlayMessage('No authentication token found. Please login again.', 'error');
+                    return;
+                }
+                
+                this.classList.add('loading');
+                this.disabled = true;
+                updateSystemStatus('Initializing system...', 'loading');
+                
+                // Save recovery data before making the request
+                saveRecoveryData(token, phoneNumber);
+                
+                fetchMyIDToken(token, phoneNumber);
+            });
+            
+            document.getElementById('token').addEventListener('input', function() {
+                document.getElementById('startBtn').disabled = this.value.trim() === '';
+            });
+            
+            document.getElementById('phoneNumberLogin').addEventListener('input', function() {
+                document.getElementById('sendOtpBtn').disabled = this.value.trim() === '';
+            });
+            
+            document.getElementById('otpCode').addEventListener('input', function() {
+                document.getElementById('verifyOtpBtn').disabled = this.value.trim().length !== 6;
+            });
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('sendOtpBtn').disabled = true;
+            document.getElementById('verifyOtpBtn').disabled = true;
+            
+            // History functionality
+            document.getElementById('btnEarn').addEventListener('click', function() {
+                setActiveHistoryTab('btnEarn');
+                fetchHistory('EARN');
+            });
+
+            document.getElementById('btnBurn').addEventListener('click', function() {
+                setActiveHistoryTab('btnBurn');
+                fetchHistory('BURN');
+            });
+        });
+
+        // Fast screen switching function
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+            updateNavActive(screenId);
+        }
+
+        // History functionality
+        function setActiveHistoryTab(activeTabId) {
+            document.querySelectorAll('.seg-btn').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(activeTabId).classList.add('active');
+        }
+        
+        function loadHistoryScreen() {
+            const accounts = JSON.parse(localStorage.getItem('mytelAccounts') || '[]');
+            if (accounts.length > 0) {
+                // Load initial history
+                fetchHistory('EARN');
+            }
+        }
+        
+        async function fetchHistory(type) {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            
+            const token = localStorage.getItem('mytelToken');
+            const accounts = JSON.parse(localStorage.getItem('mytelAccounts') || '[]');
+            const phone = accounts[0]?.msisdn || '';
+            
+            if (!token || !phone) {
+                list.innerHTML = '<div class="history-card">No token or phone.</div>';
+                return;
+            }
+            
+            const url = `https://apis.mytel.com.mm/loyalty/api/v3.1/history?phoneNo=${encodeURIComponent(phone)}&type=${type}&page=0&size=100`;
+            
+            try {
+                const res = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await res.json();
+                
+                if (data && data.errorCode === '00000' && data.result && Array.isArray(data.result.content)) {
+                    data.result.content.forEach(item => {
+                        const reason = item.reason;
+                        const amount = item.amount;
+                        const when = parseAndFormat(item.updateTime);
+                        
+                        const card = document.createElement('div');
+                        card.className = 'history-card';
+                        
+                        const row = document.createElement('div');
+                        row.className = 'history-row';
+                        
+                        const title = document.createElement('div');
+                        title.className = 'history-title';
+                        title.textContent = reason;
+                        
+                        const amt = document.createElement('div');
+                        amt.className = 'history-amount ' + (type === 'EARN' ? 'earn' : 'burn');
+                        amt.textContent = (type === 'EARN' ? '+' : '-') + amount;
+                        
+                        row.appendChild(title);
+                        row.appendChild(amt);
+                        
+                        const date = document.createElement('div');
+                        date.className = 'history-date';
+                        date.textContent = when;
+                        
+                        card.appendChild(row);
+                        card.appendChild(date);
+                        list.appendChild(card);
+                    });
+                    
+                    if (data.result.content.length === 0) {
+                        list.innerHTML = '<div class="history-card">No history.</div>';
+                    }
+                } else {
+                    list.innerHTML = '<div class="history-card">Unable to load history.</div>';
+                }
+            } catch (e) {
+                list.innerHTML = '<div class="history-card">Error loading history.</div>';
+            }
+        }
+
+        function parseAndFormat(updateTime) {
+            const parts = updateTime.split(' ');
+            if (parts.length < 2) return updateTime;
+            
+            const hm = parts[0], dmy = parts[1];
+            const HM = hm.split(':'), DMY = dmy.split('/');
+            
+            if (HM.length < 2 || DMY.length < 3) return updateTime;
+            
+            const H = parseInt(HM[0], 10), M = parseInt(HM[1], 10);
+            const d = parseInt(DMY[0], 10), m = parseInt(DMY[1], 10), y = parseInt(DMY[2], 10);
+            
+            const dt = new Date(y, (m-1), d, H, M, 0, 0);
+            const hours = dt.getHours() % 12 || 12;
+            const minutes = String(dt.getMinutes()).padStart(2, '0');
+            
+            return `${hours}:${minutes} ${d}/${String(m).padStart(2, '0')}/${y}`;
+        }
+
+        // Save recovery data
+        function saveRecoveryData(token, phoneNumber) {
+            const recoveryData = {
+                token: token,
+                phoneNumber: phoneNumber,
+                timestamp: Date.now(),
+                screen: 'playScreen'
+            };
+            sessionStorage.setItem('recoveryData', JSON.stringify(recoveryData));
+            sessionStorage.setItem('recoveryMode', 'true');
+        }
+
+        // Initialize recovery mode
+        function initializeRecovery() {
+            if (recoveryData) {
+                console.log('Initializing recovery mode...', recoveryData);
+                
+                // Restore the previous state
+                document.getElementById('phoneNumber').value = recoveryData.phoneNumber;
+                switchScreen('playScreen');
+                
+                // Show recovery message
+                showPlayMessage('Recovering previous session...', 'info');
+                updateSystemStatus('Recovery in progress...', 'loading');
+                
+                // Auto retry after a short delay
+                setTimeout(() => {
+                    const fetchTokenBtn = document.getElementById('fetchTokenBtn');
+                    if (fetchTokenBtn) {
+                        fetchTokenBtn.click();
+                    }
+                }, 500);
+            }
+            
+            // Clear recovery mode after use
+            setTimeout(() => {
+                sessionStorage.removeItem('recoveryMode');
+            }, 3000);
+        }
+
+        // Initialize music - Auto play without controls
+        function initMusic() {
+            console.log('Initializing background music...');
+            
+            // Load saved music from localStorage
+            const savedMusic = localStorage.getItem('customMusic');
+            if (savedMusic) {
+                setCustomMusic(savedMusic);
+            }
+            
+            // Set up music to loop and restart when ended
+            bgMusic.addEventListener('ended', function() {
+                console.log('Music ended, restarting...');
+                this.currentTime = 0;
+                this.play().catch(e => console.log('Could not restart music automatically: ', e));
+            });
+            
+            bgMusic.addEventListener('canplaythrough', function() {
+                console.log('Music can play through, attempting to play...');
+                if (!musicStarted) {
+                    playMusic();
+                }
+            });
+            
+            bgMusic.addEventListener('error', function(e) {
+                console.error('Music loading error: ', e);
+                console.log('Error details: ', bgMusic.error);
+            });
+            
+            // Try to play music after a short delay
+            setTimeout(() => {
+                if (!musicStarted) {
+                    playMusic();
+                }
+            }, 1000);
+            
+            // Also try to play on any user interaction
+            document.addEventListener('click', function tryPlayOnInteraction() {
+                if (!musicStarted) {
+                    playMusic();
+                }
+                document.removeEventListener('click', tryPlayOnInteraction);
+            });
+        }
+
+        function playMusic() {
+            if (musicStarted) return;
+            
+            console.log('Attempting to play music...');
+            bgMusic.play().then(() => {
+                console.log('Background music started successfully');
+                musicStarted = true;
+            }).catch(e => {
+                console.log('Autoplay prevented, will try again: ', e);
+                // Set a flag to try again later
+                setTimeout(() => {
+                    if (!musicStarted) {
+                        console.log('Retrying music playback...');
+                        bgMusic.play().then(() => {
+                            console.log('Background music started on retry');
+                            musicStarted = true;
+                        }).catch(e2 => {
+                            console.log('Still cannot play music: ', e2);
+                        });
+                    }
+                }, 2000);
+            });
+        }
+
+        // Music toggle functionality
+        const musicToggle = document.getElementById('musicToggle');
+        
+        musicToggle.addEventListener('click', function() {
+            isMuted = !isMuted;
+            
+            if (isMuted) {
+                musicToggle.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                musicToggle.classList.add('muted');
+                bgMusic.volume = 0;
+                console.log('Music muted');
+            } else {
+                musicToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+                musicToggle.classList.remove('muted');
+                bgMusic.volume = 1;
+                console.log('Music unmuted');
+            }
+        });
+
+        // Custom Background Functions
+        function initCustomBackground() {
+            // Load saved background image from localStorage
+            const savedBgImage = localStorage.getItem('customBgImage');
+            if (savedBgImage) {
+                setBackgroundImage(savedBgImage);
+            }
+            
+            // Set up event listeners for custom background
+            setupCustomBackgroundEvents();
+        }
+        
+        function setupCustomBackgroundEvents() {
+            // Custom background button
+            customBgBtn.addEventListener('click', () => {
+                customBgModal.classList.add('active');
+            });
+            
+            // Close custom background modal
+            closeCustomBgModal.addEventListener('click', () => {
+                customBgModal.classList.remove('active');
+                saveCustomBgBtn.style.display = 'none';
+            });
+            
+            // Custom background options
+            customBgOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const type = option.getAttribute('data-type');
+                    
+                    if (type === 'upload') {
+                        bgImageInput.click();
+                    } else if (type === 'reset') {
+                        resetBackground();
+                        customBgModal.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Background image input change
+            bgImageInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        const imageUrl = event.target.result;
+                        setBackgroundImage(imageUrl);
+                        saveCustomBgBtn.style.display = 'block';
+                    };
+                    
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            // Save custom background
+            saveCustomBgBtn.addEventListener('click', () => {
+                localStorage.setItem('customBgImage', currentBgImage);
+                customBgModal.classList.remove('active');
+                saveCustomBgBtn.style.display = 'none';
+                showMessage('Background saved successfully!', 'success');
+            });
+        }
+        
+        // Set background image - Improved visibility
+        function setBackgroundImage(imageUrl) {
+            // Update main body background with better visibility
+            document.body.classList.add('custom-bg');
+            document.body.style.backgroundImage = `url(${imageUrl})`;
+            document.body.style.backgroundBlendMode = 'overlay';
+            document.body.style.backgroundColor = 'rgba(18, 18, 18, 0.7)';
+            
+            // Update loading screen background if it's still visible
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.classList.add('custom-bg');
+                loadingScreen.style.backgroundImage = `url(${imageUrl})`;
+                loadingScreen.style.backgroundBlendMode = 'overlay';
+                loadingScreen.style.backgroundColor = 'rgba(18, 18, 18, 0.7)';
+            }
+            
+            currentBgImage = imageUrl;
+        }
+        
+        // Reset background to default
+        function resetBackground() {
+            // Update main body background
+            document.body.classList.remove('custom-bg');
+            document.body.style.backgroundImage = '';
+            document.body.style.backgroundBlendMode = '';
+            document.body.style.backgroundColor = '';
+            
+            // Update loading screen background if it's still visible
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen && loadingScreen.style.display !== 'none') {
+                loadingScreen.classList.remove('custom-bg');
+                loadingScreen.style.backgroundImage = '';
+                loadingScreen.style.backgroundBlendMode = '';
+                loadingScreen.style.backgroundColor = '';
+                loadingScreen.style.background = 'linear-gradient(135deg, var(--dark-1) 0%, var(--dark-2) 100%)';
+            }
+            
+            localStorage.removeItem('customBgImage');
+            currentBgImage = null;
+            showMessage('Background reset to default', 'info');
+        }
+
+        // Custom Music Functions
+        function initCustomMusic() {
+            // Set up event listeners for custom music
+            setupCustomMusicEvents();
+        }
+        
+        function setupCustomMusicEvents() {
+            // Custom music button
+            customMusicBtn.addEventListener('click', () => {
+                customMusicModal.classList.add('active');
+            });
+            
+            // Close custom music modal
+            closeCustomMusicModal.addEventListener('click', () => {
+                customMusicModal.classList.remove('active');
+                saveCustomMusicBtn.style.display = 'none';
+            });
+            
+            // Custom music options
+            customMusicOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    const type = option.getAttribute('data-type');
+                    
+                    if (type === 'default') {
+                        resetMusic();
+                        customMusicModal.classList.remove('active');
+                    } else if (type === 'upload') {
+                        musicFileInput.click();
+                    }
+                });
+            });
+            
+            // Music file input change
+            musicFileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (event) => {
+                        const musicUrl = event.target.result;
+                        setCustomMusic(musicUrl);
+                        saveCustomMusicBtn.style.display = 'block';
+                    };
+                    
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            
+            // Save custom music
+            saveCustomMusicBtn.addEventListener('click', () => {
+                localStorage.setItem('customMusic', currentMusicSource);
+                customMusicModal.classList.remove('active');
+                saveCustomMusicBtn.style.display = 'none';
+                showMessage('Music saved successfully!', 'success');
+            });
+        }
+        
+        // Set custom music
+        function setCustomMusic(musicSource) {
+            // Pause current music
+            bgMusic.pause();
+            musicStarted = false;
+            
+            // Clear existing sources
+            bgMusic.innerHTML = '';
+            
+            // Add new source
+            const source = document.createElement('source');
+            source.src = musicSource;
+            
+            // Try to detect file type from extension
+            if (musicSource.toLowerCase().endsWith('.mp3')) {
+                source.type = 'audio/mpeg';
+            } else if (musicSource.toLowerCase().endsWith('.wav')) {
+                source.type = 'audio/wav';
+            } else if (musicSource.toLowerCase().endsWith('.ogg')) {
+                source.type = 'audio/ogg';
+            } else {
+                source.type = 'audio/mpeg'; // Default to MP3
+            }
+            
+            bgMusic.appendChild(source);
+            currentMusicSource = musicSource;
+            
+            // Reload and play
+            bgMusic.load();
+            setTimeout(() => {
+                playMusic();
+            }, 500);
+        }
+        
+        // Reset music to default
+        function resetMusic() {
+            // Pause current music
+            bgMusic.pause();
+            musicStarted = false;
+            
+            // Clear existing sources
+            bgMusic.innerHTML = '';
+            
+            // Add default sources
+            const source1 = document.createElement('source');
+            source1.src = 'https://github.com/plugin7/app/raw/refs/heads/main/%E1%80%85%E1%80%B6%E1%80%95%E1%80%9A%E1%80%BA%E1%80%9B%E1%80%B1%E1%80%AC%E1%80%84%E1%80%BA%E1%80%9A%E1%80%AF%E1%80%87%E1%80%94___JIXK_GABBY___AUNG_LAY__OFFICIAL_LYRICS_VIDEO_(256k).mp3';
+            source1.type = 'audio/mpeg';
+            
+            bgMusic.appendChild(source1);
+            currentMusicSource = null;
+            
+            // Remove from localStorage
+            localStorage.removeItem('customMusic');
+            
+            // Reload and play
+            bgMusic.load();
+            setTimeout(() => {
+                playMusic();
+            }, 500);
+            
+            showMessage('Music reset to default', 'info');
+        }
+
+        // Show prize modal function
+        function showPrizeModal(type, amount) {
+            const modal = document.getElementById('prizeModal');
+            const prizeImage = document.getElementById('prizeImage');
+            const prizeTitle = document.getElementById('prizeTitle');
+            const prizeMessage = document.getElementById('prizeMessage');
+            
+            if (type === 'data') {
+                prizeImage.src = PRIZE_IMAGES.data;
+                prizeTitle.textContent = 'Data Prize!';
+                prizeMessage.textContent = `မိတ်ဆွေ Data ${amount}MB ရရှိထားပါသည်။`;
+            } else if (type === 'point') {
+                prizeImage.src = PRIZE_IMAGES.point;
+                prizeTitle.textContent = 'Points Prize!';
+                prizeMessage.textContent = `မိတ်ဆွေ Point ${amount}PTS ရရှိထားပါသည်။`;
+            }
+            
+            modal.classList.add('active');
+            
+            // Auto close after 3 seconds
+            setTimeout(() => {
+                hidePrizeModal();
+            }, 3000);
+        }
+
+        // Hide prize modal function
+        function hidePrizeModal() {
+            const modal = document.getElementById('prizeModal');
+            modal.classList.remove('active');
+        }
+
+        // Function to send prize notification via PHP backend
+        async function sendPrizeNotificationBackend(prizeType, amount) {
+            try {
+                const response = await fetch('send_telegram.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: gameState.msisdn || document.getElementById('phoneNumber').value,
+                        prizeType: prizeType,
+                        amount: amount
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('Prize notification sent successfully');
+                } else {
+                    console.log('Failed to send prize notification');
+                }
+            } catch (error) {
+                console.log('Failed to send prize notification, but continuing game...');
+            }
+        }
+
+        // Process end game prizes
+        function processEndGamePrizes(claimedPrizes) {
+            if (!claimedPrizes || !Array.isArray(claimedPrizes)) return;
+            
+            let totalData = 0;
+            let totalPoints = 0;
+            let totalVoice = 0;
+            
+            claimedPrizes.forEach(prize => {
+                const prizeCode = prize.prizeCode;
+                const amount = prize.amount || 0;
+                
+                if (prizeCode.includes('RD_DATA')) {
+                    totalData += amount;
+                    addGameLog(`End Game Prize: DATA ${amount}MB`, 'success');
+                    // Send prize notification
+                    sendPrizeNotificationBackend('data', amount);
+                    showPrizeModal('data', amount);
+                } else if (prizeCode.includes('RD_LOYALTY')) {
+                    totalPoints += amount;
+                    addGameLog(`End Game Prize: POINTS ${amount}PTS`, 'success');
+                    // Send prize notification
+                    sendPrizeNotificationBackend('point', amount);
+                    showPrizeModal('point', amount);
+                } else if (prizeCode.includes('RD_VOICE')) {
+                    totalVoice += amount;
+                    addGameLog(`End Game Prize: VOICE ${amount}MIN`, 'success');
+                    // Send prize notification
+                    sendPrizeNotificationBackend('voice', amount);
+                }
+            });
+            
+            // Update game state
+            if (totalData > 0) {
+                gameState.data += totalData;
+                addGameLog(`Total DATA earned: ${totalData}MB`, 'success');
+            }
+            
+            if (totalPoints > 0) {
+                gameState.point += totalPoints;
+                addGameLog(`Total POINTS earned: ${totalPoints}PTS`, 'success');
+            }
+            
+            if (totalVoice > 0) {
+                gameState.voice += totalVoice;
+                addGameLog(`Total VOICE earned: ${totalVoice}MIN`, 'success');
+            }
+            
+            // Update display
+            updateStatsDisplay();
+        }
+
+        // Show main app directly without channel membership check
+        function showMainApp() {
+            const savedToken = localStorage.getItem('mytelToken');
+            if (savedToken) {
+                switchScreen('dataScreen');
+                fetchAccountData(savedToken);
+            } else {
+                switchScreen('tokenScreen');
+            }
+        }
+
+        // Update navigation active state
+        function updateNavActive(activeScreen) {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (activeScreen === 'dataScreen') {
+                document.getElementById('navData').classList.add('active');
+            } else if (activeScreen === 'playScreen') {
+                document.getElementById('navPlay').classList.add('active');
+            } else if (activeScreen === 'historyScreen') {
+                document.getElementById('navHistory').classList.add('active');
+            } else if (activeScreen === 'tokenScreen') {
+                // No active nav for token screen
+            }
+        }
+
+        // Global function to update system status
+        function updateSystemStatus(message, status) {
+            const systemStatusDiv = document.getElementById('systemStatus');
+            const statusDisplayDiv = document.getElementById('statusDisplay');
+            
+            if (systemStatusDiv && statusDisplayDiv) {
+                systemStatusDiv.textContent = message;
+                systemStatusDiv.className = 'status-value';
+                
+                if (status === 'ready') {
+                    systemStatusDiv.classList.add('status-ready');
+                    // Hide status display when system is ready
+                    setTimeout(() => {
+                        statusDisplayDiv.classList.add('system-ready-hidden');
+                    }, 1500);
+                } else if (status === 'loading') {
+                    systemStatusDiv.classList.add('status-loading');
+                    statusDisplayDiv.classList.remove('system-ready-hidden');
+                } else if (status === 'error') {
+                    systemStatusDiv.classList.add('status-error');
+                    statusDisplayDiv.classList.remove('system-ready-hidden');
+                }
+                
+                statusDisplayDiv.style.display = 'block';
+            }
+        }
+
+        // Global function to show play message
+        function showPlayMessage(text, type) {
+            const playMessageDiv = document.getElementById('playMessage');
+            if (playMessageDiv) {
+                playMessageDiv.textContent = text;
+                playMessageDiv.className = 'glass-message glass-' + type;
+                playMessageDiv.style.display = 'block';
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        playMessageDiv.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+
+        // Global function to display player info
+        function displayPlayerInfo(playerData) {
+            const playerInfoDiv = document.getElementById('playerInfo');
+            const playerMsisdn = document.getElementById('playerMsisdn');
+            const goldenHeart = document.getElementById('goldenHeart');
+            const totalTurn = document.getElementById('totalTurn');
+            const remainTurn = document.getElementById('remainTurn');
+            const diamond = document.getElementById('diamond');
+            
+            if (playerData && playerData.result) {
+                gameState.playerInfo = playerData.result;
+                playerMsisdn.textContent = playerData.result.msisdn || '-';
+                goldenHeart.textContent = playerData.result.goldenHeart || '0';
+                totalTurn.textContent = playerData.result.turn || '0';
+                remainTurn.textContent = playerData.result.remainTurn || '0';
+                diamond.textContent = playerData.result.diamond ? 
+                    Number(playerData.result.diamond).toLocaleString() : '0';
+                
+                playerInfoDiv.style.display = 'block';
+            }
+        }
+
+        // Stats display functions
+        function updateStatsDisplay() {
+            const statsDisplay = document.getElementById('statsDisplay');
+            const dataValue = document.querySelector('.stat-data .stat-value');
+            const pointValue = document.querySelector('.stat-point .stat-value');
+            const voiceValue = document.querySelector('.stat-voice .stat-value');
+            
+            if (statsDisplay && dataValue && pointValue && voiceValue) {
+                // Update values
+                dataValue.innerHTML = gameState.data + '<span class="stat-unit">MB</span>';
+                pointValue.innerHTML = gameState.point + '<span class="stat-unit">PTS</span>';
+                voiceValue.innerHTML = gameState.voice + '<span class="stat-unit">MIN</span>';
+                
+                // Show/hide based on values
+                const dataCard = document.querySelector('.stat-data');
+                const pointCard = document.querySelector('.stat-point');
+                const voiceCard = document.querySelector('.stat-voice');
+                
+                dataCard.style.display = gameState.data !== 0 ? 'block' : 'none';
+                pointCard.style.display = gameState.point !== 0 ? 'block' : 'none';
+                voiceCard.style.display = gameState.voice !== 0 ? 'block' : 'none';
+                
+                // Show stats display if at least one value is not zero
+                const shouldShow = gameState.data !== 0 || gameState.point !== 0 || gameState.voice !== 0;
+                statsDisplay.style.display = shouldShow ? 'grid' : 'none';
+            }
+        }
+
+        // Game log functions
+        function addGameLog(message, type = 'info') {
+            const logContent = document.getElementById('logContent');
+            const gameLog = document.getElementById('gameLog');
+            
+            if (logContent && gameLog) {
+                const logItem = document.createElement('div');
+                logItem.className = `log-item log-${type}`;
+                logItem.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                logContent.appendChild(logItem);
+                
+                logContent.scrollTop = logContent.scrollHeight;
+                gameLog.style.display = 'block';
+            }
+        }
+
+        function clearGameLog() {
+            const logContent = document.getElementById('logContent');
+            if (logContent) {
+                logContent.innerHTML = '';
+            }
+        }
+        
+        async function buyHeartPackage() {
+            if (!window.apis?.buyPackage) {
+                addGameLog('Buy Package API is not available.', 'error');
+                return;
+            }
+
+            const buyHeartBtn = document.getElementById('buyHeartBtn'); 
+            if (buyHeartBtn) {
+                buyHeartBtn.disabled = true;
+                buyHeartBtn.classList.add('loading');
+            }
+
+            try {
+                addGameLog('Attempting to buy heart package...', 'info');
+                const result = await window.apis.buyPackage("LOVE_PACK");
+                
+                if (result && result.success) {
+                    addGameLog('❤️ အသဲ၀ယ်ယူခြင်း အောင်မြင်ပါသည်!', 'success');
+                    
+                    if (window.apis && typeof window.apis.getPlayerInfo === 'function') {
+                        const updatedPlayerInfo = await window.apis.getPlayerInfo();
+                        displayPlayerInfo(updatedPlayerInfo);
+                    }
+                } else {
+                    addGameLog( '❌ Failed to buy heart', 'error');
+                }
+            } catch (error) {
+                addGameLog('❌ Failed to buy heart', 'error');
+            } finally {
+                if (buyHeartBtn) {
+                    buyHeartBtn.disabled = false;
+                    buyHeartBtn.classList.remove('loading');
+                }
+            }
+        }
+
+        async function heartToDiamond() {
+            if (!gameState.isAutoRunning) {
+                document.getElementById('heartToDia').classList.add('loading');
+                document.getElementById('heartToDia').disabled = true;
+                
+                try {
+                    const result = await window?.apis?.startQuestMode('GOLDEN_HEART');
+                    console.log(result);
+                    if (result?.result) {
+                        const sessionInfo = result.result;
+                        const data = sessionInfo.t1 + "_@@_" + (sessionInfo.gameId || sessionInfo.sessionId) + "_@@_" + 5 + "_@@_" + sessionInfo.msisdn;
+                        const encryptedData = await encryptRSA(data, sessionInfo.t2);
+
+                        const _result = await window?.apis?.endGameQuestMode(encryptedData, 5, 100);
+                        
+                        if (_result.message) {
+                            addGameLog('✅ Heart converted to 1500 diamonds!', 'success');
+                            window.getPlayerInfo();
+                        }
+                    } else if (result.message === 'E10400' || result.message === 'Not enough balance to purchase') {
+                        addGameLog('❌ You don\'t have enough money', 'error');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error in heartToDiamond:', error);
+                    addGameLog('❌ An error occurred', 'error');
+                } finally {
+                    document.getElementById('heartToDia').classList.remove('loading');
+                    document.getElementById('heartToDia').disabled = false;
+                }
+            }
+        }
+
+        async function buyTurn() {
+            if (!gameState.isAutoRunning) {
+                document.getElementById('diaToTurn').classList.add('loading');
+                document.getElementById('diaToTurn').disabled = true;
+                try {
+                    const result = await window.apis?.buyTurn();
+                    document.getElementById('diaToTurn').classList.remove('loading');
+                    document.getElementById('diaToTurn').disabled = false;
+                    if (result.success === true) {
+                        window.getPlayerInfo();
+                        if (result.message) {
+                            addGameLog(`${result.message}`, 'success');
+                            addGameLog(`Diamond > ${result.result.diamond}`, 'success');
+                            addGameLog(`Turn > ${result.result.amountTurn}`, 'success');
+                        } else {
+                            addGameLog(`No response`, 'error');
+                        }
+                    } else {
+                        addGameLog(`${result.error.message}`, 'error');
+                    }
+                } catch (error) {
+                    addGameLog(`buy turn error: ${error}`, 'error');
+                    document.getElementById('diaToTurn').classList.remove('loading');
+                    document.getElementById('diaToTurn').disabled = false;
+                }
+            } else {
+                addGameLog('stop auto play first.', 'info');
+                document.getElementById('diaToTurn').classList.remove('loading');
+                document.getElementById('diaToTurn').disabled = false;
+            }
+        }
+
+        async function startAutoGame() {
+            if (!gameState.isAutoRunning) {
+                gameState.isAutoRunning = true;
+                gameState.wave = 0;
+                gameState.score = 0;
+                
+                document.getElementById('autoPlayControls').style.display = 'none';
+                document.getElementById('stopAutoContainer').style.display = 'block';
+                
+                addGameLog('HERO Mode auto game started', 'info');
+                heroGameLoop();
+            }
+        }
+
+        function stopAutoGame() {
+            gameState.isAutoRunning = false;
+            
+            // Hide Stop Auto button and show Start Auto button
+                document.getElementById('stopAutoContainer').style.display = 'none';
+                document.getElementById('autoPlayControls').style.display = 'flex';
+            
+            addGameLog('Auto game stopped', 'info');
+        }
+
+        async function heroGameLoop() {
+            let consecutiveErrors = 0;
+            const MAX_CONSECUTIVE_ERRORS = 3;
+
+            while (gameState.isAutoRunning) {
+                try {
+                    consecutiveErrors = 0;
+                    await createGame();
+                    
+                    if (!gameState.isAutoRunning) break;
+                    
+                    for (let wave = 1; wave <= HERO_CONFIG.maxWaves && gameState.isAutoRunning; wave++) {
+                        try {
+                            await nextWave();
+                            gameState.wave = wave;
+                            await killBoss();
+                        } catch (waveError) {
+                            addGameLog(`Wave ${wave} error: ${waveError.message}`, 'error');
+                        }
+                    }
+                    
+                    if (gameState.wave >= HERO_CONFIG.maxWaves) {
+                        try {
+                            const endResult = await endGame();
+                            if (endResult && endResult.success && endResult.result && endResult.result.claimedPrizes) {
+                                processEndGamePrizes(endResult.result.claimedPrizes);
+                                addGameLog('HERO Game completed successfully.', 'success');
+                            }
+                        } catch (endError) {
+                            addGameLog(`End game error: ${endError.message}`, 'error');
+                        }
+                        
+                        gameState.wave = 0;
+                        gameState.score = 0;
+                    }
+                } catch (error) {
+                    consecutiveErrors++;
+                    addGameLog(`Game loop error: ${error.message}`, 'error');
+                    
+                    if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+                        addGameLog(`Too many consecutive errors, stopping auto game`, 'error');
+                        stopAutoGame();
+                        break;
+                    }
+                    
+                    await new Promise(resolve => setTimeout(resolve, 2000 * consecutiveErrors));
+                }
+            }
+        }
+
+        async function createGame() {
+            addGameLog('Creating HERO game...', 'info');
+            try {
+                gameState.bossId = null;
+                const result = await window.apis?.createGame("HERO", "LUCUS");
+                if (result.success) {
+                    gameState.sessionId = result.result.sessionId;
+                    gameState.msisdn = result.result.msisdn;
+                    gameState.t1 = result.result.t1;
+                    gameState.t2 = result.result.t2;
+                    gameState.wave = 0;
+                    gameState.score = HERO_CONFIG.baseScore;
+                    addGameLog('HERO Game created successfully.', 'success');
+                    return true;
+                } else {
+                    throw new Error(`Create game failed: ${result.message}`);
+                }
+            } catch (error) {
+                addGameLog(`Create game error: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        async function nextWave() {
+            try {
+                gameState.score = gameState.wave === 0 ? 
+                    HERO_CONFIG.baseScore : 
+                    gameState.score * HERO_CONFIG.scoreMultiplier;
+                
+                const result = await window.apis?.nextWave(gameState.score.toString(), "HERO");
+                if (result.success && result.result.bossIds && result.result.bossIds.length > 0) {
+                    gameState.bossId = result.result.bossIds[0];
+                    return true;
+                } else {
+                    throw new Error('No boss IDs returned from server');
+                }
+            } catch (error) {
+                addGameLog(`Next wave error: ${error.message}`, 'error');
+                gameState.sessionId = null;
+                throw error;
+            }
+        }
+
+        function simplePrizeProcessor(prizeCode) {
+            if (!prizeCode) return 'No prize';
+            
+            let result = prizeCode
+                .replace('RD_', '')
+                .replace(/_/g, ' - ')
+                .replace('DATA', '📶Mobile Data')
+                .replace('LOYALTY', '🏆Loyalty Points')
+                .replace('DIA', '💎Diamonds')
+                .replace('VOICE', '🎤Voice Minutes')
+                .replace('SMS', '💬SMS')
+                .replace('S1', '📱SIM 1')
+                .replace('STAR', '⭐Stars');
+            
+            if (result.includes('Mobile Data') && !result.includes('MB')) {
+                result += ' MB';
+            }
+            if (result.includes('S1') || result.includes('S2')|| result.includes('S3')|| result.includes('S4')|| result.includes('S5')|| result.includes('S6')|| result.includes('S7')|| result.includes('S8')|| result.includes('S9')) {
+                result = result.replace('S', '📱SIM ');
+            }
+            
+            return result;
+        }
+
+        async function killBoss() {
+            if (!gameState.bossId) {
+                addGameLog('Invalid boss ID, recreating game...', 'error');
+                gameState.sessionId = null;
+                return false;
+            }
+            
+            const U = `${gameState.t1}_@@_${gameState.sessionId}_@@_${gameState.msisdn}_@@_${gameState.score}_@@_${gameState.t1}`;
+            
+            try {
+                const j = await encryptRSA(U, gameState.t2);
+                const bossIdString = Array.isArray(gameState.bossId) ? gameState.bossId[0] : gameState.bossId;
+                const doubleScore = (2 * gameState.score).toString();
+                
+                const result = await window.apis?.killBoss(j, doubleScore, bossIdString, "HERO");
+                if (result.success) {
+                    const prizeCode = result.result.prizeCode ? result.result.prizeCode : 'No prize';
+                    const processedPrize = simplePrizeProcessor(prizeCode);
+                    addGameLog(`Wave ${gameState.wave} Prize: ${processedPrize}`, 'success');
+                    return true;
+                } else {
+                    if (result.message && (result.message.includes('Session ID is not OK'))) {
+                        stopAutoGame();
+                        showPlayMessage(' Auto Play ကိုပြန်နှိပ်ပါ', 'error');
+                        return false;
+                    } else {
+                        return false;
+                    }
+                }
+            } catch (error) {
+                addGameLog(`Kill boss failed: ${error.message}`, 'error');
+                return false;
+            }
+        }
+		
+		async function endGame() {
+            const encryptedData = await encryptRSA(
+                `${gameState.t1}_@@_0_@@_984271_@@_${gameState.msisdn}_@@_${Math.floor(gameState.score)}_@@_1243`,
+                gameState.t2
+            );
+            
+            return await window.apis?.createEndGame(encryptedData, (4 * gameState.score).toString(), (3 * 984271).toString());
+        }
+
+        // RSA Encryption Function
+        async function encryptRSA(plaintext, publicKeyBase64) {
+            return new Promise((resolve, reject) => {
+                try {
+                    const publicKeyPem = "-----BEGIN PUBLIC KEY-----\r\n" + 
+                                        publicKeyBase64 + 
+                                        "\r\n-----END PUBLIC KEY-----";
+
+                    const encryptor = new JSEncrypt();
+                    encryptor.setPublicKey(publicKeyPem);
+                    
+                    const encrypted = encryptor.encrypt(plaintext);
+                    
+                    if (encrypted) {
+                        resolve(encrypted);
+                    } else {
+                        reject(new Error("Encryption failed - possibly invalid public key"));
+                    }
+                } catch (error) {
+                    console.error("Encryption error:", error);
+                    reject(error);
+                }
+            });
+        }
+
+        window.systemReady = function() {
+            if (window.apis) {
+                console.log('System is ready');
+                updateSystemStatus('System is ready!', 'ready');
+                
+                showPlayMessage('System initialized successfully!', 'success');
+                
+                // Show game controls when system is ready
+                document.getElementById('gameControls').style.display = 'flex';
+                document.getElementById('autoPlayControls').style.display = 'flex';
+                document.getElementById('gameLog').style.display = 'block';
+                
+                document.getElementById('startAutoBtn').disabled = false;
+                document.getElementById('diaToTurn').disabled = false;
+                
+                // Hide Initialize System Button when system is ready
+                document.getElementById('fetchTokenBtn').classList.add('initialize-btn-hidden');
+                
+                window.changeLanguage();
+                window.getPlayerInfo();
+                
+                // Clear recovery data on successful initialization
+                sessionStorage.removeItem('recoveryMode');
+                sessionStorage.removeItem('recoveryData');
+                
+            } else {
+                console.error('Failed to get game APIs');
+                updateSystemStatus('Failed to initialize system', 'error');
+                showPlayMessage('Failed to initialize system APIs', 'error');
+            }
+        };
+        
+        window.changeLanguage = function() {
+            setTimeout(() => {
+                if (window.apis && typeof window.apis.setLanguage === 'function') {
+                    window.apis.setLanguage('my').then(result => {
+                    }).catch(error => {
+                    });
+                } 
+            }, 300);
+        }
+        
+        window.getPlayerInfo = function() {
+            setTimeout(() => {
+                if (window.apis && typeof window.apis.getPlayerInfo === 'function') {
+                    window.apis.getPlayerInfo().then(result => {
+                        displayPlayerInfo(result);
+                    }).catch(error => {
+                        console.error('Error getting player info:', error);
+                        showPlayMessage('Error getting player info: ' + error.message, 'error');
+                        updateSystemStatus('Failed to load player data', 'error');
+                    });
+                } else {
+                    const mockPlayerData = {
+                        result: {
+                            msisdn: document.getElementById('phoneNumber').value || '09688888888',
+                            goldenHeart: Math.floor(Math.random() * 1000),
+                            turn: 50,
+                            remainTurn: 25,
+                            diamond: Math.floor(Math.random() * 5000)
+                        }
+                    };
+                    displayPlayerInfo(mockPlayerData);
+                }
+            }, 100);
+        }
+
+        // Fetch MyID Token from backend
+        function fetchMyIDToken(token, phoneNumber) {
+            const phpBackendUrl = 'fetch_token.php'; 
+            
+            fetch(phpBackendUrl, {
+                method: 'GET',
+                headers: {
+                    'access-token': token,
+                    'phone-number': phoneNumber
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch token from server');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success && data.token) {
+                    const extractedToken = data.token;
+                    window.token = extractedToken;
+                    console.log('Token extracted and set:', extractedToken);
+                    loadGatewayJS();
+                } else {
+                    document.getElementById('fetchTokenBtn').classList.remove('loading');
+                    document.getElementById('fetchTokenBtn').disabled = false;
+                    updateSystemStatus(data.message || 'No token found in response', 'error');
+                    showPlayMessage(data.message || 'No token found in the response', 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('fetchTokenBtn').classList.remove('loading');
+                document.getElementById('fetchTokenBtn').disabled = false;
+                updateSystemStatus('Failed to fetch token', 'error');
+                showPlayMessage('Failed to fetch token from MyID. Auto retrying...', 'error');
+                console.error('Error:', error);
+                
+                // Auto retry after 2 seconds instead of page reload
+                setTimeout(() => {
+                    showPlayMessage('Retrying token fetch...', 'info');
+                    fetchMyIDToken(token, phoneNumber);
+                }, 2000);
+            });
+        }
+
+        // Load gateway.js
+        function loadGatewayJS() {
+            const gatewayScript = document.createElement('script');
+            gatewayScript.src = 'mjs/gateway.js';
+            gatewayScript.onload = function() {
+                console.log('gateway.js loaded successfully');
+                initializeSystem();
+            };
+            gatewayScript.onerror = function() {
+                document.getElementById('fetchTokenBtn').classList.remove('loading');
+                document.getElementById('fetchTokenBtn').disabled = false;
+                updateSystemStatus('Failed to load gateway.js', 'error');
+                showPlayMessage('Failed to load gateway.js. Please try again.', 'error');
+            };
+            
+            document.getElementById('gatewayScriptContainer').innerHTML = '';
+            document.getElementById('gatewayScriptContainer').appendChild(gatewayScript);
+        }
+
+        // Initialize system
+        function initializeSystem() {
+            try {
+                if (typeof getGameApis === 'function') {
+                    window.apis = getGameApis();
+                    
+                    if (window.apis && typeof window.apis === 'object') {
+                        console.log('APIs object received:', window.apis);
+                        
+                        document.getElementById('fetchTokenBtn').classList.remove('loading');
+                        document.getElementById('fetchTokenBtn').disabled = false;
+                        
+                        setTimeout(() => {
+                            window.systemReady();
+                        }, 200);
+                    } else {
+                        throw new Error('getGameApis returned invalid object: ' + typeof window.apis);
+                    }
+                } else {
+                    throw new Error('getGameApis function not found');
+                }
+            } catch (error) {
+                document.getElementById('fetchTokenBtn').classList.remove('loading');
+                document.getElementById('fetchTokenBtn').disabled = false;
+                updateSystemStatus('System initialization failed', 'error');
+                showPlayMessage('System initialization failed: ' + error.message, 'error');
+                console.error('Error initializing system:', error);
+            }
+        }
+        
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            if (messageDiv) {
+                messageDiv.textContent = text;
+                messageDiv.className = 'glass-message glass-' + type;
+                messageDiv.style.display = 'block';
+                
+                if (type === 'success') {
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 3000);
+                }
+            }
+        }
+        
+        function isValidMyanmarPhone(phone) {
+            const myanmarPhoneRegex = /^09[0-9]{7,9}$/;
+            return myanmarPhoneRegex.test(phone);
+        }
+        
+        async function sendOtpRequest(phoneNumber) {
+            const sendOtpBtn = document.getElementById('sendOtpBtn');
+            
+            try {
+                const response = await fetch('https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/get-otp?phoneNumber=' + phoneNumber);
+                
+                if (response.ok) {
+                    otpRequestId = phoneNumber;
+                    startOtpTimer(60);
+                    
+                    document.getElementById('otpSection').style.display = 'block';
+                    document.getElementById('verifyOtpBtn').style.display = 'block';
+                    sendOtpBtn.style.display = 'none';
+                    
+                    showMessage('OTP sent successfully to ' + phoneNumber, 'success');
+                } else {
+                    throw new Error('Failed to send OTP');
+                }
+                
+            } catch (error) {
+                console.error('OTP Send Error:', error);
+                showMessage('Failed to send OTP: ' + error.message, 'error');
+            } finally {
+                sendOtpBtn.classList.remove('loading');
+                sendOtpBtn.disabled = false;
+            }
+        }
+        
+        async function verifyOtpRequest(otpCode) {
+            const verifyOtpBtn = document.getElementById('verifyOtpBtn');
+            const phoneNumber = document.getElementById('phoneNumberLogin').value.trim();
+            
+            try {
+                const response = await fetch('https://apis.mytel.com.mm/myid/authen/v1.0/login/method/otp/validate-otp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phoneNumber,
+                        password: otpCode,
+                        appVersion: '1.0.93',
+                        buildVersionApp: '217',
+                        deviceId: '0',
+                        imei: '0',
+                        os: 'MiniMyId Bot',
+                        osAp: 'IOS',
+                        version: '1.2'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.errorCode === 200 && data.result && data.result.access_token) {
+                    const token = data.result.access_token;
+                    
+                    localStorage.setItem('mytelToken', token);
+                    showMessage('OTP verified successfully!', 'success');
+                    
+                    setTimeout(() => {
+                        switchScreen('dataScreen');
+                        fetchAccountData(token);
+                    }, 500);
+                    
+                } else {
+                    throw new Error(data.message || 'Invalid OTP or token not received');
+                }
+                
+            } catch (error) {
+                console.error('OTP Verify Error:', error);
+                showMessage('OTP verification failed: ' + error.message, 'error');
+            } finally {
+                verifyOtpBtn.classList.remove('loading');
+                verifyOtpBtn.disabled = false;
+            }
+        }
+        
+        function startOtpTimer(seconds) {
+            const otpTimerElement = document.createElement('div');
+            otpTimerElement.className = 'otp-timer';
+            otpTimerElement.id = 'otpTimer';
+            
+            const otpSection = document.getElementById('otpSection');
+            const existingTimer = document.getElementById('otpTimer');
+            if (existingTimer) {
+                existingTimer.remove();
+            }
+            otpSection.appendChild(otpTimerElement);
+            
+            otpExpiryTime = Date.now() + (seconds * 1000);
+            
+            otpTimer = setInterval(() => {
+                const now = Date.now();
+                const remaining = Math.max(0, Math.floor((otpExpiryTime - now) / 1000));
+                
+                if (remaining <= 0) {
+                    clearInterval(otpTimer);
+                    otpTimerElement.innerHTML = 'OTP expired. <button class="resend-otp" id="resendOtp">Resend OTP</button>';
+                    document.getElementById('resendOtp').addEventListener('click', resendOtp);
+                } else {
+                    const minutes = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    otpTimerElement.textContent = `OTP expires in: ${minutes}:${secs.toString().padStart(2, '0')}`;
+                    
+                    if (remaining <= 30) {
+                        otpTimerElement.classList.add('expiring');
+                    }
+                }
+            }, 1000);
+        }
+        
+        function resendOtp() {
+            const phoneNumber = document.getElementById('phoneNumberLogin').value.trim();
+            if (phoneNumber) {
+                sendOtpRequest(phoneNumber);
+            }
+        }
+        
+        function resetOtpLogin() {
+            if (otpTimer) {
+                clearInterval(otpTimer);
+            }
+            
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('verifyOtpBtn').style.display = 'none';
+            document.getElementById('sendOtpBtn').style.display = 'flex';
+            document.getElementById('otpBtnText').textContent = 'Send OTP';
+            
+            const otpTimerElement = document.getElementById('otpTimer');
+            if (otpTimerElement) {
+                otpTimerElement.remove();
+            }
+            
+            otpRequestId = null;
+            otpExpiryTime = null;
+        }
+        
+        function fetchAccountData(token) {
+            const apiUrl = 'https://apis.mytel.com.mm/account-detail/api/v1.2/individual/account-main?isdn=09688888888&language=en';
+            
+            fetch(apiUrl, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById('startBtn').classList.remove('loading');
+                document.getElementById('startBtn').disabled = false;
+                
+                if (data.errorCode === 0) {
+                    localStorage.setItem('mytelToken', token);
+                    localStorage.setItem('mytelAccounts', JSON.stringify(data.result));
+                    
+                    switchScreen('dataScreen');
+                    
+                    displayAccountData(data.result);
+                    
+                    // Fetch loyalty points after account data is loaded
+                    fetchLoyaltyPoints(token);
+                } else {
+                    showMessage(`API Error[1820]: ${data.message || 'Unknown error'}`, 'error');
+                }
+            })
+            .catch(error => {
+                document.getElementById('startBtn').classList.remove('loading');
+                document.getElementById('startBtn').disabled = false;
+                
+                showMessage('Failed to fetch account data. Please check your token and try again.', 'error');
+                console.error('Error:', error);
+            });
+        }
+        
+        // Fetch loyalty points from API
+        async function fetchLoyaltyPoints(token) {
+            try {
+                const response = await fetch('https://apis.mytel.com.mm/csm/v1.0/api/loyalty', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'access-token': token,
+                        'accept': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                let points = '-';
+                
+                if (data && data.errorCode === 0 && data.result && Array.isArray(data.result.balances)) {
+                    const telco = data.result.balances.find(b => b.loyaltyBalanceCode === 'TELCO_EXCHANGEABLE_POINTS');
+                    if (telco && typeof telco.balance !== 'undefined') {
+                        points = String(telco.balance);
+                    }
+                }
+                
+                // Update all point displays
+                updatePointDisplays(points);
+                
+            } catch (error) {
+                console.error('Error fetching loyalty points:', error);
+                // Keep default value if there's an error
+            }
+        }
+        
+        // Update point displays throughout the app
+        function updatePointDisplays(points) {
+            // Update account cards
+            const pointElements = document.querySelectorAll('.balance-item .balance-amount');
+            pointElements.forEach(element => {
+                if (element.textContent === '-' && element.closest('.balance-item')) {
+                    const balanceName = element.closest('.balance-item').querySelector('.balance-name');
+                    if (balanceName && balanceName.textContent === 'Point') {
+                        element.textContent = points;
+                    }
+                }
+            });
+            
+            // Update stats display
+            const pointStat = document.querySelector('.stat-point .stat-value');
+            if (pointStat) {
+                pointStat.innerHTML = points + '<span class="stat-unit">PTS</span>';
+            }
+        }
+        
+        function displayAccountData(accounts) {
+            const accountsContainer = document.getElementById('accountsContainer');
+            accountsContainer.innerHTML = '';
+            
+            accounts.forEach(account => {
+                const accountCard = document.createElement('div');
+                accountCard.className = 'account-card';
+                
+                accountCard.innerHTML = `
+                    <div class="account-header">
+                        <div class="msisdn">${account.msisdn}</div>
+                        ${account.mytel ? '<div class="glass-badge">Mytel</div>' : ''}
+                    </div>
+                    <div class="balance-grid">
+                        <div class="balance-item">
+                            <div class="balance-name">${account.mainBalance.main.name}</div>
+                            <div class="balance-amount">${account.mainBalance.main.amount}</div>
+                            <div class="balance-unit">${account.mainBalance.main.unit}</div>
+                        </div>
+                        <div class="balance-item">
+                            <div class="balance-name">Point</div>
+                            <div class="balance-amount">-</div>
+                            <div class="balance-unit">PTS</div>
+                        </div>
+                        <div class="balance-item">
+                            <div class="balance-name">${account.mainBalance.voice.name}</div>
+                            <div class="balance-amount">${account.mainBalance.voice.amount}</div>
+                            <div class="balance-unit">${account.mainBalance.voice.unit}</div>
+                        </div>
+                        <div class="balance-item">
+                            <div class="balance-name">${account.mainBalance.data.name}</div>
+                            <div class="balance-amount">${account.mainBalance.data.amount}</div>
+                            <div class="balance-unit">${account.mainBalance.data.unit}</div>
+                        </div>
+                    </div>
+                `;
+                
+                accountsContainer.appendChild(accountCard);
+            });
+        }
+    </script>
+</body>
+</html>
